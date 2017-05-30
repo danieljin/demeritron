@@ -1,11 +1,13 @@
-const pg = require('pg');
+const pg = require('pg-then');
 const bodyParser = require('body-parser');
 const express = require('express');
+const request = require('request');
 const app = express();
-app.use( bodyParser.json() );
+
 app.use(bodyParser.urlencoded({
     extended: true
 }));
+app.use(bodyParser.json());
 
 app.use(express.static(__dirname));
 
@@ -17,32 +19,76 @@ const config = {
     port: 5432, //env var: PGPORT
     max: 10, // max number of clients in the pool
     idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
+    ssl: true,
 };
 
 const pool = new pg.Pool(config);
 
 app.post('/demerit', function (req, res) {
-    const name = req.body.name;
-    pool.query('SELECT $1::int AS number', ['2'], function(err, res) {
-        if(err) {
-            return console.error('error running query', err);
-        }
+    console.log(req.body);
 
-        console.log('number:', res.rows[0].number);
-    });
+    if (req.body.challenge && req.body.token === 'WVhmv8mvnOcyovJZ3rjPdItm') {
+        res.send(req.body.challenge);
+        return;
+    }
+    if (req.body.event && req.body.event.text && req.body.token === 'WVhmv8mvnOcyovJZ3rjPdItm') {
+        console.log('good input');
+        request.post({
+            url: 'https://slack.com/api/users.list',
+            form: {token: 'xoxp-2505660362-3155382615-190184986292-86515fbd86e9f5f9052bbe1b5c150023'}
+        }, function (err, httpResponse, body) {
+            "use strict";
+            if (err) {
+                console.error(err);
+                res.status(500).send('Something broke!');
+            } else {
+                console.log(body);
+
+                body = JSON.parse(body);
+
+                const text = req.body.event.text;
+                const users = text.match(/@\w*/g);
+                let promises = [];
+
+                for (let user of users) {
+                    const username = body.members.find((x) => {
+                        return x.id === user.slice(1);
+                    });
+                    if (username) {
+                        promises.push(pool.query(`INSERT INTO users (name, demerits) VALUES ('@${username.name}', 1) ON CONFLICT (name) DO UPDATE SET demerits = users.demerits + 1`));
+                    } else {
+                        res.status(500).send('Something broke!');
+                        return;
+                    }
+                }
+
+                return Promise.all(promises).then(response => {
+                    "use strict";
+                    console.log(response);
+                    res.send('awesome');
+                }).catch(err => {
+                    "use strict";
+                    console.error(err);
+                });
+            }
+        });
+    } else {
+        res.status(400).send('Bad Input!');
+    }
 });
 
 app.get('/demerits', function (req, res) {
-    pool.query('SELECT * from users', function(err, res) {
-        if(err) {
-            return console.error('error running query', err);
-        }
-
-        console.log('number:', res.rows);
+    pool.query('SELECT * from users').then(result => {
+        console.log('number:', result.rows);
+        res.send(result.rows);
+    }).catch(err => {
+        "use strict";
+        console.error('error running query', err);
+        res.status(500).send('Something broke!');
     });
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 app.listen(port, function () {
     'use strict';
     console.log('listening on *:' + port);
