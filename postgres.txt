@@ -1,0 +1,5 @@
+CREATE TABLE USERS(
+   ID INT PRIMARY KEY     NOT NULL,
+   NAME           TEXT    NOT NULL,
+   DEMERITS            INT     NOT NULL
+);
