@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const request = require('request');
 const app = express();
+const apiKey = process.env.API_KEY;
 
 app.use(bodyParser.urlencoded({
     extended: true
@@ -93,3 +94,34 @@ app.listen(port, function () {
     'use strict';
     console.log('listening on *:' + port);
 });
+
+function saveRelationship(fromUser, toUser) {
+    return new Promise((resolve, reject) => {
+        request.post({
+            url: 'https://demeritron-api.herokuapp.com/demerits',
+            form: {apiKey: apiKey, to: toUser, from: fromUser}
+        }, function (err, httpResponse, body) {
+            "use strict";
+            if (err) {
+                console.error(err);
+                reject('Failed to update relationship');
+            }
+            resolve();
+        });
+    });
+}
+
+function getGraph() {
+    return new Promise((resolve, reject) => {
+        request.get({
+            url: 'https://demeritron-api.herokuapp.com/demerits'
+        }, function (err, httpResponse, body) {
+            "use strict";
+            if (err) {
+                console.error(err);
+                reject('Failed to get relationship');
+            }
+            resolve(body);
+        });
+    });
+}
