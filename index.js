@@ -46,8 +46,6 @@ app.post('/demerit', function (req, res) {
                 console.error(err);
                 res.status(500).send('Something broke!');
             } else {
-                console.log(body);
-
                 body = JSON.parse(body);
 
                 const poster = body.members.find((x) => {
