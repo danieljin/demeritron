@@ -76,7 +76,6 @@ app.post('/demerit', function (req, res) {
 
                     console.log(response);
                     return Promise.all(promisesChris).then(response => {
-
                         console.log(response);
                         res.send('awesome');
                     });
@@ -119,16 +118,20 @@ app.listen(port, function () {
 });
 
 function saveRelationship(fromUser, toUser) {
-    return new Promise((resolve, reject) => {
-        request.post({
-            url: 'https://demeritron-api.herokuapp.com/demerits',
-            form: {apiKey: apiKey, to: toUser, from: fromUser}
-        }, function (err, httpResponse, body) {
+    const options = {
+        url: 'https://demeritron-api.herokuapp.com/demerits',
+        method: 'POST',
+        json: {apiKey: apiKey, to: toUser, from: fromUser}
+    };
 
+    return new Promise((resolve, reject) => {
+        request(options, function (err, httpResponse, body) {
+            console.log(body);
             if (err) {
                 console.error(err);
                 reject('Failed to update relationship');
             }
+            console.log('sent to chris');
             resolve();
         });
     });

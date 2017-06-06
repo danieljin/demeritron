@@ -12,6 +12,7 @@
   "author": "Daniel Jin",
   "license": "MIT",
   "dependencies": {
+    "alchemyjs": "^0.3.1",
     "body-parser": "^1.17.2",
     "d3": "^4.9.1",
     "express": "^4.15.3",
