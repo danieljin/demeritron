@@ -57,30 +57,34 @@ app.post('/demerit', function (req, res) {
                 let promises = [];
                 let promisesChris = [];
 
-                for (let user of users) {
-                    const username = body.members.find((x) => {
-                        return x.id === user.slice(1);
-                    });
-                    if (username) {
-                        promisesChris.push(saveRelationship(poster.name, username.name));
-                        promises.push(pool.query(`INSERT INTO users (name, demerits) VALUES ('@${username.name}', 1) ON CONFLICT (name) DO UPDATE SET demerits = users.demerits + 1`));
-                    } else {
-                        res.status(500).send('Something broke!');
-                        return;
+                if (users && poster) {
+                    for (let user of users) {
+                        const username = body.members.find((x) => {
+                            return x.id === user.slice(1);
+                        });
+                        if (username) {
+                            promisesChris.push(saveRelationship(poster.name, username.name));
+                            promises.push(pool.query(`INSERT INTO users (name, demerits) VALUES ('@${username.name}', 1) ON CONFLICT (name) DO UPDATE SET demerits = users.demerits + 1`));
+                        } else {
+                            res.status(500).send('Something broke!');
+                            return;
+                        }
                     }
-                }
 
-                return Promise.all(promises).then(response => {
+                    return Promise.all(promises).then(response => {
 
-                    console.log(response);
-                    return Promise.all(promisesChris).then(response => {
                         console.log(response);
-                        res.send('awesome');
-                    });
-                }).catch(err => {
+                        return Promise.all(promisesChris).then(response => {
+                            console.log(response);
+                            res.send('awesome');
+                        });
+                    }).catch(err => {
 
-                    console.error(err);
-                });
+                        console.error(err);
+                    });
+                } else {
+                    res.status(400).send('Bad Input!');
+                }
             }
         });
     } else {
