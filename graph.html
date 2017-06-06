@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <script src="node_modules/jquery/dist/jquery.min.js"></script>
-<script src="http://d3js.org/d3.v3.js"></script>
+<script src="https://d3js.org/d3.v3.js"></script>
 <style>
     path.link {
         fill: none;
@@ -25,7 +25,7 @@
 <body>
 <h1>Demerit Graph</h1>
 <script>
-    $.get( "http://localhost:3001/graph", function(res) {
+    $.get( "https://demeritron.herokuapp.com/graph", function(res) {
         let data = JSON.parse(res);
 
         let nodes = {};
