@@ -5,18 +5,18 @@
 <style>
     path.link {
         fill: none;
-        stroke: #666;
+        stroke: #B26A4E;
         stroke-width: 1.5px;
     }
 
     circle {
-        fill: #ccc;
+        fill: #FFA989;
         stroke: #fff;
         stroke-width: 0px;
     }
 
     text {
-        fill: #000;
+        fill: #fff;
         font: 15px sans-serif;
         pointer-events: none;
     }
@@ -25,7 +25,7 @@
 <body>
 <h1>Demerit Graph</h1>
 <script>
-    $.get( "https://demeritron.herokuapp.com/graph", function(res) {
+    $.get( "http://localhost:3001/graph", function(res) {
         let data = JSON.parse(res);
 
         let nodes = {};
@@ -70,8 +70,8 @@
             .attr("y", 0)
             .attr("height", height)
             .attr("width", width)
-            .style("stroke", 'black')
-            .style("fill", "none")
+            .style("stroke", '#5967CC')
+            .style("fill", "#5967CC")
             .style("stroke-width", 1);
 
 // build the arrow.
@@ -84,6 +84,8 @@
             .attr("refY", -0.5)
             .attr("markerWidth", 20)
             .attr("markerHeight", 20)
+            .style("fill", '#C6FFA2')
+            .style("stroke", '#C6FFA2')
             .attr("markerUnits", "userSpaceOnUse")
             .attr("orient", "auto")
             .append("svg:path")
