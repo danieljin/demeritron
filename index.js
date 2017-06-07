@@ -22,7 +22,7 @@ app.post('/demerit', function (req, res) {
         return;
     }
 
-    if (req.body.event && req.body.event.text && req.body.event.text.indexOf(':demerit:') > -1 && req.body.event.user && req.body.token === 'WVhmv8mvnOcyovJZ3rjPdItm') {
+    if (req.body.event && req.body.event.text && req.body.event.user && req.body.token === 'WVhmv8mvnOcyovJZ3rjPdItm') {
         const text = req.body.event.text;
         const posterId = req.body.event.user;
         const users = text.match(/@\w*/g);
@@ -52,7 +52,11 @@ app.post('/demerit', function (req, res) {
                             return x.id === aUser.slice(1);
                         });
                         if (user) {
-                            promises.push(saveRelationship(poster.name, user.name));
+                            if (text.indexOf(':demerit:') > -1) {
+                                promises.push(saveDemerit(poster.name, user.name));
+                            } else {
+                                promises.push(saveMention(poster.name, user.name));
+                            }
                         } else {
                             throw new Error('Something broke!');
                         }
@@ -93,7 +97,7 @@ app.listen(port, function () {
     console.log('listening on *:' + port);
 });
 
-function saveRelationship(fromUser, toUser) {
+function saveDemerit(fromUser, toUser) {
     const options = {
         json: true,
         body: {apiKey: apiKey, to: toUser, from: fromUser}
@@ -103,7 +107,22 @@ function saveRelationship(fromUser, toUser) {
         console.log(`sent relationship from:${fromUser} to:${toUser}`);
         return response;
     }).catch(err => {
-        console.error('Failed to update relationship');
+        console.error(`Failed to add demerit from:${fromUser} to:${toUser}`);
+        throw err;
+    });
+}
+
+function saveMention(fromUser, toUser) {
+    const options = {
+        json: true,
+        body: {apiKey: apiKey, to: toUser, from: fromUser}
+    };
+
+    return got.post('https://demeritron-api.herokuapp.com/mentions', options).then(response => {
+        console.log(`sent relationship from:${fromUser} to:${toUser}`);
+        return response;
+    }).catch(err => {
+        console.error(`Failed to add mention from:${fromUser} to:${toUser}`);
         throw err;
     });
 }
