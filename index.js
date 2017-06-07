@@ -4,8 +4,8 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const got = require('got');
 const app = express();
-const apiKey = process.env.API_KEY || '8Hd28IRjIgeuF0p7';
-const token = process.env.TOKEN || 'xoxp-2505660362-3155382615-190501754994-3d1bea6bf70938588d6d49c51f06fdcb';
+const apiKey = process.env.API_KEY;
+const token = process.env.TOKEN;
 
 app.use(bodyParser.urlencoded({
     extended: true
