@@ -12,13 +12,11 @@
   "author": "Daniel Jin",
   "license": "MIT",
   "dependencies": {
-    "alchemyjs": "^0.3.1",
-    "body-parser": "^1.17.2",
-    "d3": "^4.9.1",
-    "express": "^4.15.3",
-    "jquery": "^3.2.1",
-    "pg": "^6.2.3",
-    "pg-then": "^1.2.1",
-    "request": "^2.81.0"
+    "body-parser": "1.17.2",
+    "express": "4.15.3",
+    "got": "7.0.0",
+    "jquery": "3.2.1",
+    "pg": "6.2.3",
+    "pg-then": "1.2.1"
   }
 }

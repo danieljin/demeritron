@@ -1,12 +1,11 @@
 'use strict';
 
-const pg = require('pg-then');
 const bodyParser = require('body-parser');
 const express = require('express');
-const request = require('request');
+const got = require('got');
 const app = express();
-const apiKey = process.env.API_KEY;
-const token = process.env.TOKEN;
+const apiKey = process.env.API_KEY || '8Hd28IRjIgeuF0p7';
+const token = process.env.TOKEN || 'xoxp-2505660362-3155382615-190501754994-3d1bea6bf70938588d6d49c51f06fdcb';
 
 app.use(bodyParser.urlencoded({
     extended: true
@@ -15,19 +14,6 @@ app.use(bodyParser.json());
 
 app.use(express.static(__dirname));
 
-const config = {
-    user: 'zosgohpfnlzcdp', //env var: PGUSER
-    database: 'dae4i1fdva26ii', //env var: PGDATABASE
-    password: 'a3f7b7c8552d07472283ff3e485d3925176f299dfb922b953c0a8e988ccd8fd1', //env var: PGPASSWORD
-    host: 'ec2-50-19-219-69.compute-1.amazonaws.com', // Server hosting the postgres database
-    port: 5432, //env var: PGPORT
-    max: 10, // max number of clients in the pool
-    idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
-    ssl: true,
-};
-
-const pool = new pg.Pool(config);
-
 app.post('/demerit', function (req, res) {
     console.log(req.body);
 
@@ -35,80 +21,68 @@ app.post('/demerit', function (req, res) {
         res.send(req.body.challenge);
         return;
     }
-    if (req.body.event && req.body.event.text && req.body.token === 'WVhmv8mvnOcyovJZ3rjPdItm') {
-        console.log('good input');
-        request.post({
-            url: 'https://slack.com/api/users.list',
-            form: {token: token}
-        }, function (err, httpResponse, body) {
 
-            if (err) {
-                console.error(err);
-                res.status(500).send('Something broke!');
-            } else {
-                body = JSON.parse(body);
+    if (req.body.event && req.body.event.text && req.body.event.text.indexOf(':demerit:') > -1 && req.body.event.user && req.body.token === 'WVhmv8mvnOcyovJZ3rjPdItm') {
+        const text = req.body.event.text;
+        const posterId = req.body.event.user;
+        const users = text.match(/@\w*/g);
 
-                const poster = body.members.find((x) => {
-                    return x.id === req.body.event.user;
+        if (users && users.length > 0) {
+            console.log('good input');
+
+            const options = {
+                form: true,
+                body: {
+                    "token": token
+                }
+            };
+
+            return got('https://slack.com/api/users.list', options).then(response => {
+                const body = JSON.parse(response.body);
+
+                const poster = body.members.find(x => {
+                    return x.id === posterId;
                 });
 
-                const text = req.body.event.text;
-                const users = text.match(/@\w*/g);
                 let promises = [];
-                let promisesChris = [];
 
-                if (users && poster) {
-                    for (let user of users) {
-                        const username = body.members.find((x) => {
-                            return x.id === user.slice(1);
+                if (poster) {
+                    for (let aUser of users) {
+                        const user = body.members.find((x) => {
+                            return x.id === aUser.slice(1);
                         });
-                        if (username) {
-                            promisesChris.push(saveRelationship(poster.name, username.name));
-                            promises.push(pool.query(`INSERT INTO users (name, demerits) VALUES ('@${username.name}', 1) ON CONFLICT (name) DO UPDATE SET demerits = users.demerits + 1`));
+                        if (user) {
+                            promises.push(saveRelationship(poster.name, user.name));
                         } else {
-                            res.status(500).send('Something broke!');
-                            return;
+                            throw new Error('Something broke!');
                         }
                     }
 
                     return Promise.all(promises).then(response => {
-
                         console.log(response);
-                        return Promise.all(promisesChris).then(response => {
-                            console.log(response);
-                            res.send('awesome');
-                        });
-                    }).catch(err => {
-
-                        console.error(err);
+                        res.send('awesome');
                     });
                 } else {
                     res.status(400).send('Bad Input!');
                 }
-            }
-        });
+            }).catch(err => {
+                console.error(err);
+                res.status(500).send('Something broke!');
+            });
+        } else {
+            res.status(400).send('Bad Input!');
+        }
     } else {
         res.status(400).send('Bad Input!');
     }
 });
 
-app.get('/demerits', function (req, res) {
-    pool.query('SELECT * from users').then(result => {
-        console.log('number:', result.rows);
-        res.send(result.rows);
-    }).catch(err => {
-
-        console.error('error running query', err);
-        res.status(500).send('Something broke!');
-    });
-});
-
 app.get('/graph', function (req, res) {
-    return getGraph().then((body) => {
-        console.log(body);
-        res.send(body);
+    return got('https://demeritron-api.herokuapp.com/demerits').then((response) => {
+        console.log(response.body);
+        res.send(response.body);
     }).catch(err => {
-        console.error('error running query', err);
+        console.error('Failed to get relationship', err);
         res.status(500).send('Something broke!');
     });
 });
@@ -121,35 +95,15 @@ app.listen(port, function () {
 
 function saveRelationship(fromUser, toUser) {
     const options = {
-        url: 'https://demeritron-api.herokuapp.com/demerits',
-        method: 'POST',
-        json: {apiKey: apiKey, to: toUser, from: fromUser}
+        json: true,
+        body: {apiKey: apiKey, to: toUser, from: fromUser}
     };
 
-    return new Promise((resolve, reject) => {
-        request(options, function (err, httpResponse, body) {
-            console.log(body);
-            if (err) {
-                console.error(err);
-                reject('Failed to update relationship');
-            }
-            console.log('sent to chris');
-            resolve();
-        });
-    });
-}
-
-function getGraph() {
-    return new Promise((resolve, reject) => {
-        request.get({
-            url: 'https://demeritron-api.herokuapp.com/demerits'
-        }, function (err, httpResponse, body) {
-
-            if (err) {
-                console.error(err);
-                reject('Failed to get relationship');
-            }
-            resolve(body);
-        });
+    return got.post('https://demeritron-api.herokuapp.com/demerits', options).then(response => {
+        console.log(`sent relationship from:${fromUser} to:${toUser}`);
+        return response;
+    }).catch(err => {
+        console.error('Failed to update relationship');
+        throw err;
     });
 }
