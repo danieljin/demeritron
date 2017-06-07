@@ -9,6 +9,17 @@
         stroke-width: 1.5px;
     }
 
+    path.demeritLink {
+        fill: none;
+        stroke: red;
+        stroke-width: 1.5px;
+    }
+    path.mentionLink {
+        fill: none;
+        stroke: #B26A4E;
+        stroke-width: 1.5px;
+    }
+
     circle {
         fill: #FFA989;
         stroke: #fff;
@@ -19,6 +30,14 @@
         fill: #fff;
         font: 15px sans-serif;
         pointer-events: none;
+    }
+
+    a.demeritText {
+        fill: red;
+    }
+
+    a.mentionText {
+        fill: #B26A4E;
     }
 
 </style>
@@ -41,10 +60,14 @@
         });
 
         links.forEach(function (link) {
+            const sourceNode = oldNodes.find(x=>x.title===link.source);
+            const targetNode = oldNodes.find(x=>x.title===link.target);
+
+
             link.source = nodes[link.source] ||
-                (nodes[link.source] = {name: link.source, received: oldNodes.find(x=>x.title===link.source).received});
+                (nodes[link.source] = {name: link.source, mentionsReceived: sourceNode.mentionsReceived, demeritsReceived: sourceNode.demeritsReceived});
             link.target = nodes[link.target] ||
-                (nodes[link.target] = {name: link.target, received: oldNodes.find(x=>x.title===link.target).received});
+                (nodes[link.target] = {name: link.target, mentionsReceived: targetNode.mentionsReceived, demeritsReceived: targetNode.demeritsReceived});
         });
 
         let width = 1200,
@@ -54,8 +77,8 @@
             .nodes(d3.values(nodes))
             .links(links)
             .size([width, height])
-            .linkDistance(150)
-            .charge(-600)
+            .linkDistance(200)
+            .charge(-2000)
             .on("tick", tick)
             .start();
 
@@ -79,12 +102,12 @@
             .enter().append("svg:marker")    // This section adds in the arrows
             .attr("id", String)
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 23)
-            .attr("refY", -3)
+            .attr("refX", 20)
+            .attr("refY", -1.5)
             .attr("markerWidth", 25)
             .attr("markerHeight", 25)
             .style("fill", '#C6FFA2')
-            .style("stroke", '#C6FFA2')
+            .style("stroke", 'none')
             .attr("markerUnits", "userSpaceOnUse")
             .attr("orient", "auto")
             .append("svg:path")
@@ -96,9 +119,17 @@
             .enter().append("svg:path")
             .attr("style", function(d) {
                 let percentage = d.count / maxDemeritRelationship;
-                return "stroke-width: " + ((percentage * 10) + 1) + "px";
+                return "stroke-width: " + ((percentage * 6) + 1) + "px";
             })
-            .attr("class", "link")
+            .attr("class", function(d) {
+                if (d.title === "Gave Demerit") {
+                    return 'demeritLink';
+                } else if (d.title === "Mentioned") {
+                    return 'mentionLink';
+                } else {
+                    return 'link';
+                }
+            })
             .attr("marker-end", "url(#end)");
 
 // define the nodes
@@ -123,7 +154,7 @@
         node.append("text")
             .attr("dy", "17px")
             .attr("text-anchor", "middle")
-            .text(function(d) { return d.received; });
+            .html(function(d) { return `<a class="demeritText">${d.demeritsReceived}</a> : <a class="mentionText">${d.mentionsReceived}</a>`; });
 
 // add the curvy lines
         function tick() {
@@ -133,7 +164,11 @@
                     dr = Math.sqrt(dx * dx + dy * dy);
 
                 if (dx === 0 && dy === 0) {
-                    return "M" + d.source.x + "," + d.source.y + "A" + 35 + "," + 50 + " " + -45 + "," + 1 + "," + 0 + " " + (d.target.x + .1) + "," + (d.target.y + .1);
+                    return `M${d.source.x},${d.source.y}A35,50 -45,1,0 ${d.target.x + .1},${d.target.y + .1}`;
+                }
+
+                if (d.title === "Mentioned") {
+                    return `M ${d.source.x},${d.source.y} L ${d.target.x},${d.target.y}`
                 }
 
                 return "M" +

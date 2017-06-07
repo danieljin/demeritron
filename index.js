@@ -51,14 +51,12 @@ app.post('/demerit', function (req, res) {
                         const user = body.members.find((x) => {
                             return x.id === aUser.slice(1);
                         });
-                        if (user) {
+                        if (user && user.id !== poster.id) {
                             if (text.indexOf(':demerit:') > -1) {
                                 promises.push(saveDemerit(poster.name, user.name));
                             } else {
                                 promises.push(saveMention(poster.name, user.name));
                             }
-                        } else {
-                            throw new Error('Something broke!');
                         }
                     }
 
@@ -82,7 +80,7 @@ app.post('/demerit', function (req, res) {
 });
 
 app.get('/graph', function (req, res) {
-    return got('https://demeritron-api.herokuapp.com/demerits').then((response) => {
+    return got('https://demeritron-api.herokuapp.com/data').then((response) => {
         console.log(response.body);
         res.send(response.body);
     }).catch(err => {
