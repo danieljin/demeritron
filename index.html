@@ -11,12 +11,12 @@
 
     path.demeritLink {
         fill: none;
-        stroke: red;
+        stroke: #ff707f;
         stroke-width: 1.5px;
     }
     path.mentionLink {
         fill: none;
-        stroke: #B26A4E;
+        stroke: #f7d7b2;
         stroke-width: 1.5px;
     }
 
@@ -33,16 +33,18 @@
     }
 
     a.demeritText {
-        fill: red;
+        fill: #ff707f;
+        color: #ff707f;
     }
 
     a.mentionText {
-        fill: #B26A4E;
+        fill: #f7d7b2;
+        color: #f7d7b2;
     }
 
 </style>
-<body>
-<h1>Demerit Graph</h1>
+<body bgcolor="#5967CC">
+<h1><a class="mentionText">Mention</a> and <a class="demeritText">Demerit Graph</a></h1>
 <script>
     $.get( "https://demeritron.herokuapp.com/graph", function(res) {
         let data = JSON.parse(res);
@@ -92,7 +94,7 @@
             .attr("y", 0)
             .attr("height", height)
             .attr("width", width)
-            .style("stroke", '#5967CC')
+            .style("stroke", 'white')
             .style("fill", "#5967CC")
             .style("stroke-width", 1);
 
