@@ -79,8 +79,8 @@
             .nodes(d3.values(nodes))
             .links(links)
             .size([width, height])
-            .linkDistance(200)
-            .charge(-2000)
+            .linkDistance(170)
+            .charge(-1000)
             .on("tick", tick)
             .start();
 
@@ -89,7 +89,7 @@
             .attr("height", height)
             .attr("border", 1);
 
-        var borderPath = svg.append("rect")
+        let borderPath = svg.append("rect")
             .attr("x", 0)
             .attr("y", 0)
             .attr("height", height)
@@ -104,8 +104,8 @@
             .enter().append("svg:marker")    // This section adds in the arrows
             .attr("id", String)
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 20)
-            .attr("refY", -1.5)
+            .attr("refX", 18)
+            .attr("refY", -1)
             .attr("markerWidth", 25)
             .attr("markerHeight", 25)
             .style("fill", '#C6FFA2')
@@ -144,7 +144,7 @@
 // add the nodes
         node.append("circle")
             .attr("r", function(d) {
-                return 40;
+                return 30;
             });
 
 // add the text
