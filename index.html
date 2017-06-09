@@ -75,6 +75,24 @@
           },
           ready: function(){
             window.cy = this;
+            cy.on('mouseover', 'edge', function(event) {
+              var edge = event.target;
+              edge.css({
+                'content': edge.data('strength'),
+                'text-outline-width': 2,
+                'text-outline-color': '#000',
+                'color': edge.data('faveColor')  
+              });
+            });
+            cy.on('mouseout', 'edge', function(event) {
+              var edge = event.target;
+              edge.css({
+                'content': '',
+                'text-outline-width': 2,
+                'text-outline-color': '#000',
+                'color': edge.data('faveColor') 
+              });
+            });
           }
         });
     });

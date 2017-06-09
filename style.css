@@ -26,3 +26,10 @@ a.mentionText {
 :before {
     white-space: pre;
 }
+
+*:hover::before {
+  content: data(strength),
+  text-outline-width: 2,
+  text-outline-color: #000,
+  color: data(faveColor)
+}
