@@ -1,190 +1,80 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <script src="node_modules/jquery/dist/jquery.min.js"></script>
-<script src="https://d3js.org/d3.v3.js"></script>
-<style>
-    path.link {
-        fill: none;
-        stroke: #B26A4E;
-        stroke-width: 1.5px;
-    }
-
-    path.demeritLink {
-        fill: none;
-        stroke: #ff707f;
-        stroke-width: 1.5px;
-    }
-    path.mentionLink {
-        fill: none;
-        stroke: #f7d7b2;
-        stroke-width: 1.5px;
-    }
-
-    circle {
-        fill: #FFA989;
-        stroke: #fff;
-        stroke-width: 0px;
-    }
-
-    text {
-        fill: #fff;
-        font: 15px sans-serif;
-        pointer-events: none;
-    }
-
-    a.demeritText {
-        fill: #ff707f;
-        color: #ff707f;
-    }
-
-    a.mentionText {
-        fill: #f7d7b2;
-        color: #f7d7b2;
-    }
-
-</style>
+<script src="cytoscape.min.js"></script>
+<link href="style.css" rel="stylesheet" />
 <body bgcolor="#5967CC">
 <h1><a class="mentionText">Mention</a> and <a class="demeritText">Demerit</a> Graph</h1>
+<div id="cy"></div>
 <script>
     $.get( "https://demeritron.herokuapp.com/graph", function(res) {
         let data = JSON.parse(res);
-
-        let nodes = {};
-        let oldNodes = data.nodes;
-        let links = data.edges;
-
-        let maxDemeritRelationship = data.maxDemeritRelationship;
-
-        // Compute the distinct nodes from the links.
-        links.forEach(function(link) {
-            link.source = oldNodes.find(x=>x.id===link.source).title;
-            link.target = oldNodes.find(x=>x.id===link.target).title;
-        });
-
-        links.forEach(function (link) {
-            const sourceNode = oldNodes.find(x=>x.title===link.source);
-            const targetNode = oldNodes.find(x=>x.title===link.target);
-
-
-            link.source = nodes[link.source] ||
-                (nodes[link.source] = {name: link.source, mentionsReceived: sourceNode.mentionsReceived, demeritsReceived: sourceNode.demeritsReceived});
-            link.target = nodes[link.target] ||
-                (nodes[link.target] = {name: link.target, mentionsReceived: targetNode.mentionsReceived, demeritsReceived: targetNode.demeritsReceived});
-        });
-
-        let width = 1200,
-            height = 600;
-
-        let force = d3.layout.force()
-            .nodes(d3.values(nodes))
-            .links(links)
-            .size([width, height])
-            .linkDistance(170)
-            .charge(-1000)
-            .on("tick", tick)
-            .start();
-
-        let svg = d3.select("body").append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("border", 1);
-
-        let borderPath = svg.append("rect")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("height", height)
-            .attr("width", width)
-            .style("stroke", 'white')
-            .style("fill", "#5967CC")
-            .style("stroke-width", 1);
-
-// build the arrow.
-        svg.append("svg:defs").selectAll("marker")
-            .data(["end"])      // Different link/path types can be defined here
-            .enter().append("svg:marker")    // This section adds in the arrows
-            .attr("id", String)
-            .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 18)
-            .attr("refY", -1)
-            .attr("markerWidth", 25)
-            .attr("markerHeight", 25)
-            .style("fill", '#C6FFA2')
-            .style("stroke", 'none')
-            .attr("markerUnits", "userSpaceOnUse")
-            .attr("orient", "auto")
-            .append("svg:path")
-            .attr("d", "M0,-5L10,0L0,5");
-
-// add the links and the arrows
-        let path = svg.append("svg:g").selectAll("path")
-            .data(force.links())
-            .enter().append("svg:path")
-            .attr("style", function(d) {
-                let percentage = d.count / maxDemeritRelationship;
-                return "stroke-width: " + ((percentage * 6) + 1) + "px";
-            })
-            .attr("class", function(d) {
-                if (d.title === "Gave Demerit") {
-                    return 'demeritLink';
-                } else if (d.title === "Mentioned") {
-                    return 'mentionLink';
-                } else {
-                    return 'link';
-                }
-            })
-            .attr("marker-end", "url(#end)");
-
-// define the nodes
-        let node = svg.selectAll(".node")
-            .data(force.nodes())
-            .enter().append("g")
-            .attr("class", "node")
-            .call(force.drag);
-
-// add the nodes
-        node.append("circle")
-            .attr("r", function(d) {
-                return 30;
-            });
-
-// add the text
-        node.append("text")
-            .attr("dy", "-2px")
-                .attr("text-anchor", "middle")
-            .text(function(d) { return d.name; });
-
-        node.append("text")
-            .attr("dy", "17px")
-            .attr("text-anchor", "middle")
-            .html(function(d) { return `<a class="demeritText">${d.demeritsReceived}</a> : <a class="mentionText">${d.mentionsReceived}</a>`; });
-
-// add the curvy lines
-        function tick() {
-            path.attr("d", function(d) {
-                let dx = d.target.x - d.source.x,
-                    dy = d.target.y - d.source.y,
-                    dr = Math.sqrt(dx * dx + dy * dy);
-
-                if (dx === 0 && dy === 0) {
-                    return `M${d.source.x},${d.source.y}A35,50 -45,1,0 ${d.target.x + .1},${d.target.y + .1}`;
-                }
-
-                if (d.title === "Mentioned") {
-                    return `M ${d.source.x},${d.source.y} L ${d.target.x},${d.target.y}`
-                }
-
-                return "M" +
-                    d.source.x + "," +
-                    d.source.y + "A" +
-                    dr + "," + dr + " 0 0,1 " +
-                    d.target.x + "," +
-                    d.target.y;
-            });
-            node.attr("transform", function(d) {
-                return "translate(" + d.x + "," + d.y + ")";
-            });
+        let users = data.nodes;
+        let rels = data.edges;
+        let nodes = [];
+        let edges = [];
+        for (let user of users) {
+          nodes.push({data: {id: user.id, name: user.title, weight: user.mentionsReived, faveColor: '#6FB1FC', faveShape: 'ellipse'}});
         }
+        for (let rel of rels) {
+          if(rel.title == 'Mentioned') {
+            edges.push({data: {source: rel.source, target: rel.target, faveColor: '#f7d7b2', strength: rel.count}});
+          } else {
+            edges.push({data: {source: rel.source, target: rel.target, faveColor: '#ff707f', strength: rel.count}});
+          }
+        }
+        cytoscape({
+          container: document.getElementById('cy'),
+          layout: {
+            name: 'cose',
+            padding: 10
+          },
+          style: cytoscape.stylesheet()
+            .selector('node')
+              .css({
+                'shape': 'data(faveShape)',
+                'width': 'mapData(weight, 40, 80, 20, 60)',
+                'content': 'data(name)',
+                'text-valign': 'center',
+                'text-outline-width': 2,
+                'text-outline-color': 'data(faveColor)',
+                'background-color': 'data(faveColor)',
+                'color': '#fff'
+              })
+            .selector(':selected')
+              .css({
+                'border-width': 3,
+                'border-color': '#333'
+              })
+            .selector('edge')
+              .css({
+                'curve-style': 'bezier',
+                'opacity': 0.666,
+                'width': 'mapData(strength, 70, 100, 2, 6)',
+                'target-arrow-shape': 'triangle',
+                'source-arrow-shape': 'circle',
+                'line-color': 'data(faveColor)',
+                'source-arrow-color': 'data(faveColor)',
+                'target-arrow-color': 'data(faveColor)'
+              })
+            .selector('edge.questionable')
+              .css({
+                'line-style': 'dotted',
+                'target-arrow-shape': 'diamond'
+              })
+            .selector('.faded')
+              .css({
+                'opacity': 0.25,
+                'text-opacity': 0
+              }),
+          elements: {
+            nodes: nodes,
+            edges: edges
+          },
+          ready: function(){
+            window.cy = this;
+          }
+        });
     });
-
 </script>
 </body>
