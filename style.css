@@ -1,0 +1,20 @@
+body { 
+  font: 14px helvetica neue, helvetica, arial, sans-serif;
+}
+#cy {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+a.demeritText {
+    fill: #ff707f;
+    color: #ff707f;
+}
+
+a.mentionText {
+    fill: #f7d7b2;
+    color: #f7d7b2;
+}
