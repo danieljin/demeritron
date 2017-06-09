@@ -18,3 +18,11 @@ a.mentionText {
     fill: #f7d7b2;
     color: #f7d7b2;
 }
+
+:after {
+    white-space: pre;
+}
+
+:before {
+    white-space: pre;
+}

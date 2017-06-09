@@ -14,7 +14,7 @@
         let nodes = [];
         let edges = [];
         for (let user of users) {
-          nodes.push({data: {id: user.id, name: user.title, weight: user.mentionsReived, faveColor: '#6FB1FC', faveShape: 'ellipse'}});
+          nodes.push({data: {id: user.id, name: user.title, weight: user.mentionsReceived, faveColor: '#6FB1FC', faveShape: 'ellipse'}});
         }
         for (let rel of rels) {
           if(rel.title == 'Mentioned') {
@@ -33,7 +33,7 @@
             .selector('node')
               .css({
                 'shape': 'data(faveShape)',
-                'width': 'mapData(weight, 40, 80, 20, 60)',
+                'width': 'mapData(weight, 40, 80, 30, 60)',
                 'content': 'data(name)',
                 'text-valign': 'center',
                 'text-outline-width': 2,
@@ -41,7 +41,7 @@
                 'background-color': 'data(faveColor)',
                 'color': '#fff'
               })
-            .selector(':selected')
+            .selector('node:selected')
               .css({
                 'border-width': 3,
                 'border-color': '#333'
@@ -57,10 +57,12 @@
                 'source-arrow-color': 'data(faveColor)',
                 'target-arrow-color': 'data(faveColor)'
               })
-            .selector('edge.questionable')
+            .selector('edge:selected')
               .css({
-                'line-style': 'dotted',
-                'target-arrow-shape': 'diamond'
+                'content': 'data(strength)',
+                'text-outline-width': 2,
+                'text-outline-color': '#000',
+                'color': 'data(faveColor)'  
               })
             .selector('.faded')
               .css({
