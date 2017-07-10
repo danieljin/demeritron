@@ -7,7 +7,18 @@
 <h1><a class="mentionText">Mention</a> and <a class="demeritText">Demerit</a> Graph</h1>
 <div id="cy"></div>
 <script>
-    $.get( "https://demeritron.herokuapp.com/graph", function(res) {
+    $.urlParam = function(name){
+        var results = new RegExp('[\?&]' + name + '=([^]*)').exec(window.location.href);
+        if (results==null){
+           return null;
+        }
+        else{
+           return results[1] || 0;
+        }
+    }
+    let username = $.urlParam('user');
+    let url = username ? 'https://demeritron.herokuapp.com/graph/' + username : 'https://demeritron.herokuapp.com/graph';
+    $.get( url, function(res) {
         let data = JSON.parse(res);
         let users = data.nodes;
         let rels = data.edges;

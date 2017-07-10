@@ -89,6 +89,17 @@ app.get('/graph', function (req, res) {
     });
 });
 
+app.get('/graph/:username', function (req, res) {
+    const username = req.params.username;
+    return got('https://demeritron-api.herokuapp.com/data/' + username).then((response) => {
+        console.log(response.body);
+        res.send(response.body);
+    }).catch(err => {
+        console.error('Failed to get relationship', err);
+        res.status(500).send('Something broke!');
+    });
+});
+
 
 const port = process.env.PORT || 3001;
 app.listen(port, function () {
