@@ -7,7 +7,7 @@
 <h1><a class="mentionText">Mention</a> and <a class="demeritText">Demerit</a> Graph</h1>
 <div class="navbar">
 <a href="/"><img src="img/home.png"/></a>
-<a href="javascript:history.back()"><img src="img/back.png"/></a>
+<a id="back-button" href="javascript:history.back()"><img src="img/back.png"/></a>
 </div>
 <div id="cy"></div>
 <script>
@@ -23,10 +23,19 @@
     let username = $.urlParam('user');
     let url = username ? 'https://demeritron.herokuapp.com/graph/' + username : 'https://demeritron.herokuapp.com/graph';
 
+    const backEnabled = function () {
+      return (document.referrer.indexOf('demeritron') > -1 || document.referrer.indexOf('localhost') > -1);
+    }
+
     if(username){
-      $(".navbar").show();
+        $(".navbar").show();
+        if(backEnabled()){
+            $("#back-button").show();
+        } else {
+            $("#back-button").hide();
+        }
     } else {
-      $(".navbar").hide();
+        $(".navbar").hide();
     }
 
     $.get( url, function(res) {
