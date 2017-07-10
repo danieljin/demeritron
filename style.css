@@ -5,7 +5,7 @@ body {
   height: 100%;
   width: 100%;
   position: absolute;
-  left: 0;
+  left: 60px;
   top: 0;
 }
 
@@ -32,4 +32,14 @@ a.mentionText {
   text-outline-width: 2,
   text-outline-color: #000,
   color: data(faveColor)
+}
+
+.navbar {
+  z-index: 1;
+  display: grid;
+  max-width: 50px;
+}
+
+img {
+  max-width: 50px;
 }
