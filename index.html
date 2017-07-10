@@ -104,6 +104,11 @@
                 'color': edge.data('faveColor') 
               });
             });
+            cy.on('click', 'node', function(event) {
+              var node = event.target;
+              var username = node.data('name');
+              window.location.href = '?user=' + username;
+            });
           }
         });
     });
